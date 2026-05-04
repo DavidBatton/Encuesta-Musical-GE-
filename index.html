@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plataforma Musical GE — TFG Francisco Ngua Iwango</title>
+  <link rel="icon" type="image/png" href="logo_encuesta.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --white: #ffffff;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-400: #9ca3af; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --navy: #1a3a5c; --navy-light: #254d7a;
+      --green: #059669; --green-light: #047857;
+      --purple: #7c3aed; --purple-light: #6d28d9;
+      --teal: #0d9488; --teal-light: #0f766e;
+      --radius: 14px; --shadow: 0 2px 16px rgba(26,58,92,.08);
+      --topbar-h: 56px;
+    }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--gray-800); min-height: 100vh; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+    /* TOPBAR */
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 16px; height: var(--topbar-h); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .topbar-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; background: var(--navy); padding: 3px; flex-shrink: 0; }
+    .topbar-title { font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-sub { font-size: 11px; color: var(--gray-400); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .topbar-link { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--gray-200); color: var(--gray-600); font-size: 11px; font-weight: 500; text-decoration: none; transition: border-color .15s, color .15s; white-space: nowrap; }
+    .topbar-link:hover { border-color: var(--navy); color: var(--navy); }
+    .topbar-link svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* MAIN */
+    .main { padding-top: calc(var(--topbar-h) + 24px); padding-bottom: 48px; display: flex; flex-direction: column; align-items: center; }
+
+    /* HERO */
+    .hero { width: 100%; max-width: 640px; padding: 0 16px; margin-bottom: 24px; }
+    .hero-card { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); border-radius: 20px; padding: 32px 24px; color: var(--white); text-align: center; position: relative; overflow: hidden; }
+    .hero-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: rgba(124,58,237,.15); border-radius: 50%; }
+    .hero-card::after { content: ''; position: absolute; bottom: -40px; left: -40px; width: 130px; height: 130px; background: rgba(13,148,136,.1); border-radius: 50%; }
+    .hero-logo { width: 64px; height: 64px; border-radius: 16px; object-fit: contain; background: rgba(255,255,255,.12); padding: 8px; margin: 0 auto 16px; display: block; }
+    .hero-card h1 { font-size: clamp(16px, 5vw, 22px); font-weight: 700; line-height: 1.3; margin-bottom: 8px; position: relative; }
+    .hero-card .subtitle { font-size: 13px; opacity: .75; position: relative; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); color: var(--white); font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-top: 14px; position: relative; }
+
+    /* INFO CARD */
+    .info-card { width: 100%; max-width: 640px; padding: 0 16px; margin-bottom: 20px; }
+    .info-inner { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .info-inner h2 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+    .info-inner p { font-size: 13px; color: var(--gray-600); line-height: 1.65; }
+    .info-inner p strong { color: var(--gray-800); }
+
+    /* PILLS */
+    .pills-wrap { width: 100%; max-width: 640px; padding: 0 16px; margin-bottom: 28px; }
+    .pills { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pill { display: flex; align-items: center; gap: 8px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--gray-600); }
+    .pill svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* SECTION LABEL */
+    .section-label { width: 100%; max-width: 640px; padding: 0 16px; margin-bottom: 12px; }
+    .section-label span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-400); }
+
+    /* SURVEY CARDS */
+    .cards-wrap { width: 100%; max-width: 640px; padding: 0 16px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+    .survey-card { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: var(--radius); text-decoration: none; transition: transform .15s, box-shadow .15s; box-shadow: var(--shadow); border: 1px solid transparent; }
+    .survey-card:active { transform: scale(.98); }
+    .survey-card.artistas { background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: var(--white); }
+    .survey-card.consumidores { background: linear-gradient(135deg, var(--teal), var(--teal-light)); color: var(--white); }
+    .card-icon { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon svg { width: 26px; height: 26px; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .75; margin-bottom: 4px; }
+    .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .card-desc { font-size: 12px; opacity: .8; line-height: 1.4; }
+    .card-arrow { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-arrow svg { width: 16px; height: 16px; }
+
+
+    @media (min-width: 600px) {
+      :root { --topbar-h: 60px; }
+      .topbar { padding: 0 24px; }
+      .pills { grid-template-columns: repeat(4, 1fr); }
+      .survey-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.15); }
+    }
+    @media (min-width: 900px) {
+      :root { --topbar-h: 64px; }
+      .topbar { padding: 0 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="logo_encuesta.png" alt="Logo" class="topbar-logo" width="32" height="32" />
+      <div>
+        <div class="topbar-title">Plataforma Musical GE</div>
+        <div class="topbar-sub">TFG · Francisco Ngua Iwango</div>
+      </div>
+    </div>
+    <div class="topbar-actions"></div>
+  </header>
+
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-card">
+        <img src="logo_encuesta.png" alt="Logo" class="hero-logo" width="64" height="64" loading="lazy" />
+        <h1>PLATAFORMA WEB DE DISTRIBUCIÓN MUSICAL EN GUINEA ECUATORIAL</h1>
+        <p class="subtitle">Estudio sobre aceptación y disposición de artistas y consumidores</p>
+        <span class="hero-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Estudio Académico · AAUCA
+        </span>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-card">
+      <div class="info-inner">
+        <h2>Sobre este estudio</h2>
+        <p>Elaborado por <strong>Francisco Ngua Iwango</strong> para su Trabajo de Fin de Grado en la Universidad Afro-Americana de África Central (AAUCA), bajo la supervisión del <strong>MSc. Diosdado Asumu</strong>. Analiza la viabilidad de una plataforma nacional de distribución musical digital en Guinea Ecuatorial.</p>
+      </div>
+    </div>
+
+    <!-- PILLS -->
+    <div class="pills-wrap">
+      <div class="pills">
+        <div class="pill">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Anónima
+        </div>
+        <div class="pill">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Académica
+        </div>
+        <div class="pill">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ~5 minutos
+        </div>
+        <div class="pill">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Voluntaria
+        </div>
+      </div>
+    </div>
+
+    <!-- SURVEY CARDS -->
+    <div class="section-label"><span>Selecciona tu perfil para comenzar</span></div>
+    <div class="cards-wrap">
+
+      <a href="artista.html" class="survey-card artistas">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Encuesta A</div>
+          <div class="card-title">Soy Artista</div>
+          <div class="card-desc">Para músicos y creadores de contenido ecuatoguineanos activos</div>
+        </div>
+        <div class="card-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </a>
+
+      <a href="consumidores.html" class="survey-card consumidores">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Encuesta B</div>
+          <div class="card-title">Soy Consumidor</div>
+          <div class="card-desc">Para oyentes y consumidores de música en Guinea Ecuatorial</div>
+        </div>
+        <div class="card-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </a>
+
+    </div>
+
+
+  </main>
+
+</body>
+</html>

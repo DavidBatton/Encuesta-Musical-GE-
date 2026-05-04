@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Resultados — Plataforma Musical GE</title>
+  <link rel="icon" type="image/png" href="logo_encuesta.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:#1a3a5c; --navy-light:#254d7a;
+      --purple:#7c3aed; --teal:#0d9488;
+      --green:#059669; --white:#fff;
+      --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb;
+      --gray-400:#9ca3af; --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937;
+      --rose:#e11d48; --amber:#d97706; --violet:#7c3aed; --sky:#0284c7;
+      --radius:12px; --shadow:0 2px 12px rgba(26,58,92,.07); --topbar-h:56px;
+    }
+    html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+    body { font-family:'Inter',sans-serif; background:var(--gray-50); color:var(--gray-800); min-height:100vh; -webkit-font-smoothing:antialiased; line-height:1.6; }
+    .topbar { position:fixed; top:0; left:0; right:0; z-index:100; height:var(--topbar-h); background:var(--white); border-bottom:1px solid var(--gray-200); padding:0 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+    .topbar-brand { display:flex; align-items:center; gap:10px; min-width:0; }
+    .topbar-logo { width:32px; height:32px; border-radius:8px; object-fit:contain; background:var(--navy); padding:3px; flex-shrink:0; }
+    .topbar-title { font-size:13px; font-weight:700; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .topbar-sub { font-size:10px; color:var(--gray-400); }
+    .topbar-actions { display:flex; align-items:center; gap:8px; }
+    .btn-refresh { display:flex; align-items:center; gap:4px; padding:6px 12px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-size:12px; font-weight:600; cursor:pointer; transition:background .15s; min-height:40px; -webkit-tap-highlight-color:transparent; }
+    .btn-refresh:hover { background:var(--navy-light); }
+    .btn-refresh svg { width:13px; height:13px; flex-shrink:0; }
+    .topbar-link { display:flex; align-items:center; gap:4px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--gray-200); color:var(--gray-600); font-size:11px; font-weight:500; text-decoration:none; transition:border-color .15s,color .15s; min-height:40px; }
+    .topbar-link:hover { border-color:var(--navy); color:var(--navy); }
+    .topbar-link svg { width:12px; height:12px; }
+    #lastUpdate { font-size:10px; color:var(--gray-400); display:none; }
+    .main { padding:calc(var(--topbar-h) + 16px) 16px 32px; }
+    #stateScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; gap:12px; text-align:center; padding:20px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--gray-200); border-top-color:var(--navy); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #stateScreen h2 { font-size:18px; font-weight:700; color:var(--navy); }
+    #stateScreen p { font-size:13px; color:var(--gray-600); max-width:300px; line-height:1.5; }
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+    .kpi-card { background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius); padding:14px 12px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+    .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .kpi-card.kpi-total::before { background:linear-gradient(90deg,var(--navy),var(--green)); }
+    .kpi-card.kpi-artistas::before { background:var(--purple); }
+    .kpi-card.kpi-consumidores::before { background:var(--teal); }
+    .kpi-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--gray-400); margin-bottom:6px; }
+    .kpi-value { font-size:28px; font-weight:700; color:var(--navy); line-height:1; }
+    .kpi-card.kpi-artistas .kpi-value { color:var(--purple); }
+    .kpi-card.kpi-consumidores .kpi-value { color:var(--teal); }
+    .kpi-sub { font-size:11px; color:var(--gray-400); margin-top:4px; }
+    .sec-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--green); margin:24px 0 12px; display:flex; align-items:center; gap:8px; }
+    .sec-title::after { content:''; flex:1; height:1px; background:var(--gray-200); }
+    .grid-2 { display:grid; grid-template-columns:1fr; gap:14px; }
+    .chart-card { background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius); padding:14px 12px; box-shadow:var(--shadow); }
+    .card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; gap:8px; }
+    .card-title { font-size:13px; font-weight:600; color:var(--gray-800); }
+    .card-sub { font-size:11px; color:var(--gray-400); margin-top:2px; }
+    .card-badge { font-size:9px; font-weight:600; padding:2px 7px; border-radius:16px; background:var(--gray-100); color:var(--gray-600); white-space:nowrap; flex-shrink:0; }
+    .chart-wrap canvas { max-height:200px; }
+    .chart-wrap-md canvas { max-height:240px; }
+    .alert-config { background:#fef3c7; border:1px solid #fcd34d; border-radius:12px; padding:14px 16px; font-size:13px; color:#92400e; margin-bottom:20px; display:none; align-items:flex-start; gap:10px; }
+    .alert-config svg { width:18px; height:18px; flex-shrink:0; margin-top:1px; }
+    .alert-config code { background:#fde68a; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:12px; }
+    @media (min-width:600px) {
+      :root { --topbar-h:60px; }
+      .topbar { padding:0 24px; }
+      #lastUpdate { display:inline; }
+      .main { padding:calc(var(--topbar-h) + 20px) 24px 40px; }
+      .kpi-grid { grid-template-columns:repeat(3,1fr); gap:14px; }
+      .kpi-value { font-size:32px; }
+      .grid-2 { grid-template-columns:repeat(2,1fr); }
+      .chart-wrap canvas { max-height:220px; }
+    }
+    @media (min-width:900px) {
+      :root { --topbar-h:64px; }
+      .topbar { padding:0 32px; }
+      .main { padding:calc(var(--topbar-h) + 28px) 32px 48px; max-width:1200px; margin:0 auto; }
+      .kpi-value { font-size:36px; }
+      .sec-title { margin:32px 0 16px; }
+      .chart-card { padding:18px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="logo_encuesta.png" alt="Logo" class="topbar-logo" width="32" height="32" />
+      <div>
+        <div class="topbar-title">Plataforma Musical GE</div>
+        <div class="topbar-sub">Panel de Resultados</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="lastUpdate"></span>
+      <a href="entrada.html" class="topbar-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Entrada papel
+      </a>
+      <a href="index.html" class="topbar-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Encuestas
+      </a>
+      <button class="btn-refresh" onclick="loadData()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="alert-config" id="alertConfig">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>URL no configurada. Edita <code>panel.html</code> y reemplaza <code>TU_URL_APPS_SCRIPT_AQUI</code> con la URL real de tu Apps Script. Los datos mostrados son de ejemplo.</div>
+    </div>
+
+    <div id="stateScreen">
+      <div class="spinner"></div>
+      <h2>Cargando datos...</h2>
+      <p>Conectando con Google Sheets</p>
+    </div>
+
+    <div id="dashContent" style="display:none">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-artistas">
+          <div class="kpi-label">Artistas</div>
+          <div class="kpi-value" id="kpiArtistas">—</div>
+          <div class="kpi-sub">respuestas</div>
+        </div>
+        <div class="kpi-card kpi-consumidores">
+          <div class="kpi-label">Consumidores</div>
+          <div class="kpi-value" id="kpiConsumidores">—</div>
+          <div class="kpi-sub">respuestas</div>
+        </div>
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Total</div>
+          <div class="kpi-value" id="kpiTotal">—</div>
+          <div class="kpi-sub">respuestas recopiladas</div>
+        </div>
+      </div>
+
+      <div class="sec-title">Encuesta Artistas — Perfil y Actividad</div>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Género musical principal</div><div class="card-sub">Q1</div></div><span class="card-badge" id="bA1"></span></div>
+          <div class="chart-wrap"><canvas id="cA1"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Años activo como artista</div><div class="card-sub">Q2</div></div><span class="card-badge" id="bA2"></span></div>
+          <div class="chart-wrap"><canvas id="cA2"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Fuentes de ingresos actuales</div><div class="card-sub">Q3 · respuesta múltiple</div></div><span class="card-badge" id="bA3"></span></div>
+          <div class="chart-wrap chart-wrap-md"><canvas id="cA3"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Recibe ingresos por ventas/reproducciones</div><div class="card-sub">Q4</div></div><span class="card-badge" id="bA4"></span></div>
+          <div class="chart-wrap"><canvas id="cA4"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Compensación en discotecas/eventos</div><div class="card-sub">Q5</div></div><span class="card-badge" id="bA5"></span></div>
+          <div class="chart-wrap"><canvas id="cA5"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Satisfacción con ingresos actuales</div><div class="card-sub">Q6</div></div><span class="card-badge" id="bA6"></span></div>
+          <div class="chart-wrap"><canvas id="cA6"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-title">Encuesta Artistas — Plataforma y Modelo</div>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Registraría música en plataforma nacional</div><div class="card-sub">Q7</div></div><span class="card-badge" id="bA7"></span></div>
+          <div class="chart-wrap"><canvas id="cA7"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Usaría si garantiza transparencia</div><div class="card-sub">Q8</div></div><span class="card-badge" id="bA8"></span></div>
+          <div class="chart-wrap"><canvas id="cA8"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Modelo 40% para artistas es justo</div><div class="card-sub">Q11</div></div><span class="card-badge" id="bA11"></span></div>
+          <div class="chart-wrap"><canvas id="cA11"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">MUNI Dinero viable para cobros</div><div class="card-sub">Q13</div></div><span class="card-badge" id="bA13"></span></div>
+          <div class="chart-wrap"><canvas id="cA13"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Beneficio de la iniciativa para artistas</div><div class="card-sub">Q14</div></div><span class="card-badge" id="bA14"></span></div>
+          <div class="chart-wrap"><canvas id="cA14"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Participaría en proyecto piloto</div><div class="card-sub">Q15</div></div><span class="card-badge" id="bA15"></span></div>
+          <div class="chart-wrap"><canvas id="cA15"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-title">Encuesta Consumidores — Perfil y Hábitos</div>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Rango de edad</div><div class="card-sub">Q1</div></div><span class="card-badge" id="bC1"></span></div>
+          <div class="chart-wrap"><canvas id="cC1"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Escucha música ecuatoguineana</div><div class="card-sub">Q2</div></div><span class="card-badge" id="bC2"></span></div>
+          <div class="chart-wrap"><canvas id="cC2"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Dónde escucha música</div><div class="card-sub">Q3 · respuesta múltiple</div></div><span class="card-badge" id="bC3"></span></div>
+          <div class="chart-wrap chart-wrap-md"><canvas id="cC3"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Ha comprado música local digital</div><div class="card-sub">Q4</div></div><span class="card-badge" id="bC4"></span></div>
+          <div class="chart-wrap"><canvas id="cC4"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Precio habitual por canción</div><div class="card-sub">Q5</div></div><span class="card-badge" id="bC5"></span></div>
+          <div class="chart-wrap"><canvas id="cC5"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Artistas reciben ingresos justos</div><div class="card-sub">Q6</div></div><span class="card-badge" id="bC6"></span></div>
+          <div class="chart-wrap"><canvas id="cC6"></canvas></div>
+        </div>
+      </div>
+
+      <div class="sec-title">Encuesta Consumidores — Disposición y Pagos</div>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Pagaría 200 XAF por descarga legal</div><div class="card-sub">Q7</div></div><span class="card-badge" id="bC7"></span></div>
+          <div class="chart-wrap"><canvas id="cC7"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Disposición general a pagar</div><div class="card-sub">Q9</div></div><span class="card-badge" id="bC9"></span></div>
+          <div class="chart-wrap"><canvas id="cC9"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Tiene cuenta MUNI Dinero</div><div class="card-sub">Q10</div></div><span class="card-badge" id="bC10"></span></div>
+          <div class="chart-wrap"><canvas id="cC10"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head"><div><div class="card-title">Usaría si es sencillo y accesible</div><div class="card-sub">Q15</div></div><span class="card-badge" id="bC15"></span></div>
+          <div class="chart-wrap"><canvas id="cC15"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjTAoWUXntsUjPfTPxeFjJuvOrodb2XmA7c9bXi9-vqjxw68IgzBP1LMINKc4tS-w4/exec';
+
+    const C = {
+      navy:'#1a3a5c', navyL:'#254d7a', green:'#059669',
+      purple:'#7c3aed', teal:'#0d9488', rose:'#e11d48',
+      amber:'#d97706', violet:'#7c3aed', sky:'#0284c7', gold:'#d97706',
+      alpha:(h,a) => h + Math.round(a*255).toString(16).padStart(2,'0')
+    };
+    const PALETTE = [C.navy, C.green, C.teal, C.rose, C.amber, C.violet, C.sky, C.gold, '#6366f1', '#ec4899'];
+    const charts = {};
+
+    function contar(arr) {
+      return arr.reduce((acc,v) => { if(v) acc[v]=(acc[v]||0)+1; return acc; }, {});
+    }
+    function pct(v,t) { return t ? ((v/t)*100).toFixed(1)+'%' : '0%'; }
+    function badge(id, n) { const el=document.getElementById(id); if(el) el.textContent=n+' resp.'; }
+
+    function upsertChart(id, config) {
+      if(charts[id]) charts[id].destroy();
+      const ctx = document.getElementById(id);
+      if(!ctx) return;
+      charts[id] = new Chart(ctx, config);
+    }
+
+    function donut(id, labels, values, badgeId) {
+      badge(badgeId, values.reduce((a,b)=>a+b,0));
+      upsertChart(id, {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data:values, backgroundColor:PALETTE, borderWidth:2, borderColor:'#fff', hoverOffset:6 }] },
+        options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'bottom', labels:{ font:{size:11,family:'Inter'}, padding:10, usePointStyle:true } }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw} (${pct(ctx.raw, ctx.dataset.data.reduce((a,b)=>a+b,0))})` } } }, cutout:'62%' }
+      });
+    }
+
+    function barH(id, labels, values, color, badgeId) {
+      if(badgeId) badge(badgeId, values.reduce((a,b)=>a+b,0));
+      upsertChart(id, {
+        type:'bar',
+        data:{ labels, datasets:[{ data:values, backgroundColor:C.alpha(color,0.85), borderRadius:6, borderSkipped:false }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:true, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.raw} respuestas` } } }, scales:{ x:{ grid:{color:'#f3f4f6'}, ticks:{font:{size:10}}, beginAtZero:true }, y:{ grid:{display:false}, ticks:{font:{size:10}} } } }
+      });
+    }
+
+    function renderArtistas(rows) {
+      const n = rows.length;
+      if(!n) return;
+
+      const q1 = contar(rows.map(r=>r.q1));
+      donut('cA1', Object.keys(q1), Object.values(q1), 'bA1');
+
+      const q2 = contar(rows.map(r=>r.q2));
+      const q2o = ['Menos de 1 año','1 – 3 años','4 – 7 años','Más de 7 años'];
+      const q2l = q2o.filter(k=>q2[k]);
+      barH('cA2', q2l, q2l.map(k=>q2[k]||0), C.purple, 'bA2');
+
+      // Q3 múltiple: cada opción separada por ", "
+      const q3opts = ['Conciertos','Eventos privados','Streaming','Venta directa','No genero ingresos'];
+      const q3counts = q3opts.map(opt => rows.filter(r => (Array.isArray(r.q3) ? r.q3 : (r.q3||'').split(', ')).includes(opt)).length);
+      badge('bA3', n);
+      barH('cA3', q3opts, q3counts, C.teal, null);
+
+      const q4 = contar(rows.map(r=>r.q4));
+      donut('cA4', Object.keys(q4), Object.values(q4), 'bA4');
+
+      const q5 = contar(rows.map(r=>r.q5));
+      donut('cA5', Object.keys(q5), Object.values(q5), 'bA5');
+
+      const q6 = contar(rows.map(r=>r.q6));
+      const q6o = ['1 – Muy insatisfecho','2 – Insatisfecho','3 – Neutral','4 – Satisfecho','5 – Muy satisfecho'];
+      const q6l = q6o.filter(k=>q6[k]);
+      barH('cA6', q6l, q6l.map(k=>q6[k]||0), C.amber, 'bA6');
+
+      const q7 = contar(rows.map(r=>r.q7));
+      donut('cA7', Object.keys(q7), Object.values(q7), 'bA7');
+
+      const q8 = contar(rows.map(r=>r.q8));
+      donut('cA8', Object.keys(q8), Object.values(q8), 'bA8');
+
+      const q11 = contar(rows.map(r=>r.q11));
+      donut('cA11', Object.keys(q11), Object.values(q11), 'bA11');
+
+      const q13 = contar(rows.map(r=>r.q13));
+      donut('cA13', Object.keys(q13), Object.values(q13), 'bA13');
+
+      const q14 = contar(rows.map(r=>r.q14));
+      const q14o = ['1 – Nada beneficiosa','2 – Poco beneficiosa','3 – Moderadamente','4 – Beneficiosa','5 – Muy beneficiosa'];
+      const q14l = q14o.filter(k=>q14[k]);
+      barH('cA14', q14l, q14l.map(k=>q14[k]||0), C.navy, 'bA14');
+
+      const q15 = contar(rows.map(r=>r.q15));
+      donut('cA15', Object.keys(q15), Object.values(q15), 'bA15');
+    }
+
+    function renderConsumidores(rows) {
+      const n = rows.length;
+      if(!n) return;
+
+      const q1 = contar(rows.map(r=>r.q1));
+      const q1o = ['Menos de 18 años','18 – 25 años','26 – 35 años','36 – 45 años','Más de 45 años'];
+      const q1l = q1o.filter(k=>q1[k]);
+      barH('cC1', q1l, q1l.map(k=>q1[k]||0), C.teal, 'bC1');
+
+      const q2 = contar(rows.map(r=>r.q2));
+      donut('cC2', Object.keys(q2), Object.values(q2), 'bC2');
+
+      const q3opts = ['YouTube','Redes sociales','Música descargada','Plataformas internacionales','Discotecas / eventos'];
+      const q3counts = q3opts.map(opt => rows.filter(r => (Array.isArray(r.q3) ? r.q3 : (r.q3||'').split(', ')).includes(opt)).length);
+      badge('bC3', n);
+      barH('cC3', q3opts, q3counts, C.sky, null);
+
+      const q4 = contar(rows.map(r=>r.q4));
+      donut('cC4', Object.keys(q4), Object.values(q4), 'bC4');
+
+      const q5 = contar(rows.map(r=>r.q5));
+      donut('cC5', Object.keys(q5), Object.values(q5), 'bC5');
+
+      const q6 = contar(rows.map(r=>r.q6));
+      donut('cC6', Object.keys(q6), Object.values(q6), 'bC6');
+
+      const q7 = contar(rows.map(r=>r.q7));
+      donut('cC7', Object.keys(q7), Object.values(q7), 'bC7');
+
+      const q9 = contar(rows.map(r=>r.q9));
+      const q9o = ['1 – Ninguna','2 – Poca','3 – Neutral','4 – Dispuesto/a','5 – Muy dispuesto/a'];
+      const q9l = q9o.filter(k=>q9[k]);
+      barH('cC9', q9l, q9l.map(k=>q9[k]||0), C.green, 'bC9');
+
+      const q10 = contar(rows.map(r=>r.q10));
+      donut('cC10', Object.keys(q10), Object.values(q10), 'bC10');
+
+      const q15 = contar(rows.map(r=>r.q15));
+      donut('cC15', Object.keys(q15), Object.values(q15), 'bC15');
+    }
+
+    function renderAll(data) {
+      document.getElementById('kpiArtistas').textContent    = data.artistas ?? 0;
+      document.getElementById('kpiConsumidores').textContent = data.consumidores ?? 0;
+      document.getElementById('kpiTotal').textContent        = data.total ?? 0;
+
+      if(data.timestamp) {
+        const d = new Date(data.timestamp);
+        document.getElementById('lastUpdate').textContent =
+          'Actualizado: ' + d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+      }
+
+      if(data.rowsArtistas && data.rowsArtistas.length) renderArtistas(data.rowsArtistas);
+      if(data.rowsConsumidores && data.rowsConsumidores.length) renderConsumidores(data.rowsConsumidores);
+
+      document.getElementById('stateScreen').style.display = 'none';
+      document.getElementById('dashContent').style.display = 'block';
+    }
+
+    function showError(msg) {
+      const s = document.getElementById('stateScreen');
+      s.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <h2 style="color:#ef4444">Error al cargar</h2>
+        <p>${msg}</p>
+        <button onclick="loadData()" style="margin-top:12px;padding:10px 20px;border-radius:10px;border:none;background:#1a3a5c;color:#fff;font-weight:600;cursor:pointer;">Reintentar</button>`;
+    }
+
+    function loadData() {
+      document.getElementById('stateScreen').style.display = 'flex';
+      document.getElementById('dashContent').style.display = 'none';
+
+      if(!SCRIPT_URL || SCRIPT_URL === 'TU_URL_APPS_SCRIPT_AQUI') {
+        document.getElementById('alertConfig').style.display = 'flex';
+        // Datos de ejemplo para previsualizar el panel
+        renderAll({
+          artistas: 0, consumidores: 0, total: 0,
+          rowsArtistas: [], rowsConsumidores: [],
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      fetch(SCRIPT_URL + '?action=data')
+        .then(r => r.json())
+        .then(data => {
+          if(data.status === 'ok') {
+            renderAll(data);
+          } else {
+            showError('Error del servidor: ' + (data.message || 'desconocido'));
+          }
+        })
+        .catch(err => {
+          showError('No se pudo conectar con Google Sheets. Verifica que el script esté desplegado correctamente.');
+          console.error(err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>
